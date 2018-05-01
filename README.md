@@ -6,7 +6,7 @@
 루비는 객체 지향 프로그래밍언어 입니다.
 OOP(Object-Oriented Programming) 객체 지향 프로그래밍에 대해 배워봅시다.
 
-## Model
+## MODEL
 
 MVC패턴의 Model을 배워봅시다.
 
@@ -16,6 +16,16 @@ MVC패턴의 Model을 배워봅시다.
 - validation
 - seed
 - rake task
+
+#### 유의사항
+
+- unilion W4강의를 들었다는 가정하에 진행됩니다.
+- ruby `2.4.0` rails `5.0.6` 버전 맞춰주세요.
+
+---
+### 다운로드링크
+
+- [수업자료 다운받기](https://github.com/likelionkonkuk/w4_material)
 
 ---
 
@@ -42,7 +52,7 @@ $ rails g model User email age:integer
 *belongs_to user* : Post모델은 User모델에 속해있다.
 
 ```ruby
-$ rails g model Post title content:text user:references
+$ rails g model Post title content:text user_id:integer
 ```
 
 #### User.rb
@@ -64,20 +74,57 @@ end
 #### rails console로 모델 관계 확인
 
 ```ruby
-Department.new
-#=>#<Department id: nil, name: nil, pnum: nil, created_at: nil, updated_at: nil>
+User.create name: "다혜", age: 24, email: 'dh0023@likelion.org'
+#=> #<User id: 1, name: "다혜", age: 24, email: "dh0023@likelion.org", created_at: "2018-05-01 12:55:57", updated_at: "2018-05-01 12:55:57">
 
-d = Department.create name: "개발", pnum: 1234
-#=> #<Department id: 1, name: "개발", pnum: 1234, created_at: "2018-04-30 15:41:37", updated_at: "2018-04-30 15:41:37">
+Post.create title: "안녕하세요!", content: "asdfkjasldkfjsdlkfjasd", user_id: 1
+#=> #<Post id: nil, title: "안녕하세요!", content: "asdfkjasldkfjsdlkfjasd", user_id: 1, created_at: "2018-05-01 12:56:40", updated_at: "2018-05-01 12:56:40>
 
-Employee.new
-#=> #<Employee id: nil, name: nil, enum: nil, department_id: nil, created_at: nil, updated_at: nil>
+u  = User.first
+u.posts
+p = Post.first
+p.user
+```
 
-e=Employee.create name: "dahye", enum: "20180503", department_id: 1
-#=> #<Employee id: 1, name: "dahye", enum: 950902, department_id: 1, created_at: "2018-04-30 15:42:49", updated_at: "2018-04-30 15:42:49">
+#### Comment Model
 
-e.department
-#=> #<Department id: 1, name: "개발", pnum: 1234, created_at: "2018-04-30 15:41:37", updated_at: "2018-04-30 15:41:37">
+|id|content|post_id|created_at|updated_at|
+| :--- | :---: | :---: | :---: | :---: |
+|integer|text|integer|datetime|datetime|
+ 
+post모델과 1:N관계를 갖고 있는 comment 모델을 생성할 것이다. 앞에서는 `post_id:integer`로 생성했지만 여기서는 더 간단하게 해보자!
+
+```
+$ rails g model Comment content:text post:references
+```
+
+이미 Post.rb에서 belongs_to 관계는 설정 된 것을 확인할 수 있다.
+
+```rb
+# Comment.rb
+has_many :comments
+```
+
+console로 확인해보자!
+
+```ruby
+Comment.creat content: "aksdfjlaskdfjlaskd", post_id: 1
+#=> #<Comment id: 1, content: "aksdfjlaskdfjlaskd", post_id: 1, created_at: "2018-05-01 13:06:21", updated_at: "2018-05-01 13:06:21">
+
+a=Comment.first
+#=> #<Comment id: 1, content: "aksdfjlaskdfjlaskd", post_id: 1, created_at: "2018-05-01 13:06:21", updated_at: "2018-05-01 13:06:21">
+
+a.post
+#=> #<Post id: 1, title: "안녕하세요!", content: "asdfkjasldkfjsdlkfjasd", user_id: 1, created_at: "2018-05-01 12:56:40", updated_at: "2018-05-01 12:56:40">
+
+a.post.user
+#=> #<User id: 1, name: "다혜", age: 24, email: "dh0023@likelion.org", created_at: "2018-05-01 12:55:57", updated_at: "2018-05-01 12:55:57">
+
+p=Post.first
+#=> #<Post id: 1, title: "안녕하세요!", content: "asdfkjasldkfjsdlkfjasd", user_id: 1, created_at: "2018-05-01 12:56:40", updated_at: "2018-05-01 12:56:40">
+p.comments
+#=> #<ActiveRecord::Associations::CollectionProxy [#<Comment id: 1, content: "aksdfjlaskdfjlaskd", post_id: 1, created_at: "2018-05-01 13:06:21", updated_at: "2018-05-01 13:06:21">]>
+---
 ```
 
 ---
@@ -86,18 +133,66 @@ e.department
 
 - [rails_guides](https://rubykr.github.io/rails_guides/migrations.html)
 
-- 컬럼 추가하기 / 삭제하기
 ```
 만약 마이그레이션 이름이 “AddXXXToYYY” 혹은 “RemoveXXXFromYYY” 이고 이후에 컬럼 이름과 타입을 입력하면 정확한 add_column 과 remove_column 구문이 생성될 것입니다.
 ```
 
+#### 컬럼 추가하기
+
 ```
 $ rails g migration AddSchoolToUser school
+      invoke  active_record
+      create    db/migrate/20180501134312_add_school_to_user.rb
+```
+
+```rb
+class AddSchoolToUser < ActiveRecord::Migration[5.1]
+  def change
+    add_column :users, :school, :string
+  end
+end
+```
+```
+$ rails db:migrate
+```
+한 후 `rails_db`나 console을 이용해서 확인 해보면 추가가 된 것을 확인 할 수 있다.
+
+```rb
+User.new
+#=> #<User id: nil, name: nil, age: nil, email: nil, created_at: nil, updated_at: nil, school: nil>
+```
+
+#### 컬럼 삭제하기
+
+```
+$ rails g migration RemoveSchoolFromUser school
+      invoke  active_record
+      create    db/migrate/20180501134630_remove_school_from_user.rb
+```
+
+```ruby
+class RemoveSchoolFromUser < ActiveRecord::Migration[5.1]
+  def change
+    remove_column :users, :school, :string
+  end
+end
 ```
 
 ```
-$ rails g migration RemoveContextFromPost context:text
+$ rails db:migrate
 ```
+```ruby
+User.new
+#=> #<User id: nil, name: nil, age: nil, email: nil, created_at: nil, updated_at: nil>
+```
+
+---
+
+### Faker Gem
+
+그런데 이렇게 데이터를 한개 한개 입력하기가 너무 힘들다. 레일즈에서는 더미 데이터 생성을 도와주는 gem이 있다.
+
+- [Faker](https://github.com/stympy/faker)
 
 
 ----
@@ -112,20 +207,34 @@ validates field [, ...] name: params[, ...]
 # params :검사 매개변수
 ```
 
+모델 저장(save), 생성(create), 수정(update) 메소드가 호출되는 시점에 입력값을 검사처리해 검사가 성공적으로 이루어 지는 경우에만 수행된다.
+
+
+| 유효성 검사 종류 | 설명                         |
+| ---------------- | ---------------------------- |
+| uniqueness       | 중복검사                     |
+| presence         | 값이 존재하는지 검사         |
+| numericality     | 숫자인지 검사                |
+| format           | 정규표현식과 일치하는지 검사 |
+| length           | 길이 검사                    |
+
+
 #### app/models/user.rb
+
+1. 이메일 형식이 맞아야한다.
+2. 이름, 나이, 이메일은 입력되지 않으면 저장되지 않는다.
+3. 이메일은 유일해야한다.
+4. 나이는 19세 이상이어야한다.
+5. 게시글 제목에는 like와 lion이 들어가면 글자 길이만큼 `*`로 변경되어야 하며 길이는 최대 30자이다.
 
 ```ruby
 class User < ApplicationRecord
   has_many :posts
-
-  def name=(s)
-    super s.titleize
-  end
-  
+    
   RegExp = /\A([\w+\-].?)+@[a-z\d\-]+(\.[a-z]+)*\.[a-z]+\z/i
 
-  validates :name, length: {maximum: 100}, presence: true
-  validates :age, numericality: {only_integer: true, greater_than: 19, less_than:30}, presence: true
+  validates :name, presence: true
+  validates :age, numericality: {only_integer: true, greater_than: 19}, presence: true
   validates :email, format: {with: RegExp}, uniqueness: {case_sensitive: false}, presence: true
 end
 ```
@@ -137,7 +246,7 @@ class Post < ApplicationRecord
   belongs_to :user
   has_many :comments
 
-  words = ["shit", "fuck", "hell"]
+  words = ["like", "lion"]
   
   before_save{ 
     words.each do |word| 
@@ -146,8 +255,7 @@ class Post < ApplicationRecord
     end
   }
 
-  validates :title, length: {minimum: 2 , maximum: 30}, presence: true
-  validates :content, presence: true
+  validates :title, length: {maximum: 30}
 end
 ```
 
@@ -162,6 +270,7 @@ $ rails g task my_task test1 test2
 ```
 
 #### task 파일 실행
+
 ```
 $ rake my_task:test1
 $ rake my_task:test2

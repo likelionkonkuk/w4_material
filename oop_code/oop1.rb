@@ -44,4 +44,4 @@ oop.rb:9:in `run': undefined local variable or method `name' for #<Person:0x0000
 - 프로그램 규모가 커지면 커질수록 전역 변수가 존재하는 코드는 해석이 어려워진다.
 - 정말로 필요한 경우가 아니라면 사용을 자제하는 것이 좋다.
 	
-end
+=end

@@ -8,7 +8,7 @@
 class Person
 
 	attr_reader :name, :age
-	attr_writer :name, :age
+	#attr_writer :name, :age
 	#attr_accessor :name, :age
 	
 	def initialize(name, age)
@@ -16,6 +16,11 @@ class Person
 		@age = age
 	end
 end
+
+p = Person.new('다혜',24)
+puts p.name
+# p.name = "현경"
+# puts p.name
 
 #attr_writer : Person#name= 라는 인스턴스 변수가 정의된다.
 #attr_reader : Person#name 라는 인스턴스 변수가 정의된다.
